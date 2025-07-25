@@ -58,8 +58,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # UI
-st.title("🎬 Sistem Rekomendasi Film")
 st.image("poster.jpg", use_column_width=True)
+st.title("🎬 Sistem Rekomendasi Film")
 input_title = st.text_input("Masukkan judul film yang kamu suka:")
 
 if st.button("Cari Rekomendasi"):
