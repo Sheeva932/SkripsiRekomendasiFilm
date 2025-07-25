@@ -10,8 +10,8 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# Fungsi rekomendasi
-def recommend_film(title, num_recommendations=10):
+# Fungsi rekomendasi tanpa batas jumlah film
+def recommend_film(title):
     title = title.lower()
     matches = df_all[df_all['title'].str.lower().str.contains(title, na=False)]
 
@@ -21,7 +21,7 @@ def recommend_film(title, num_recommendations=10):
     idx = matches.index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:num_recommendations+1]
+    sim_scores = sim_scores[1:]  # Ambil semua film kecuali yang dicari
 
     film_indices = [i[0] for i in sim_scores]
     result = df_all.iloc[film_indices].copy()
@@ -59,7 +59,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # UI
-st.image("banner.jpg", use_column_width=True)
+st.image("banner.jpg", use_container_width=True)
 st.title("🎬 Sistem Rekomendasi Film")
 input_title = st.text_input("Masukkan judul film yang kamu suka:")
 
@@ -85,8 +85,8 @@ if st.button("Cari Rekomendasi"):
                                     <div><b>Genre:</b> {film['genres']}</div>
                                     <div><b>Director:</b> {film['director']}</div>
                                     <div><b>Cast:</b> {film['cast']}</div>
-                            """, unsafe_allow_html=True)
-                            with st.expander("📖 Read more"):
+                             """, unsafe_allow_html=True)
+                            with st.expander("📖 Sinopsis"):
                                 st.markdown(film['overview'])
 
                             st.markdown("</div>", unsafe_allow_html=True)
