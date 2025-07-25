@@ -31,7 +31,7 @@ def recommend_film(title):
 st.markdown("""
     <style>
     body {
-        background-color: #001B3A;
+        background-color: #00316E;
     }
     .film-box {
         background-color: #1e3a5f;
