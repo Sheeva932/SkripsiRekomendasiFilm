@@ -13,33 +13,54 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-#fungsi koreksi jdul
-def find_best_match(user_input):
-    titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+#fungsi match
+def find_best_match(title, choices, cutoff=0.6):
+    """Cari judul terdekat dari list choices, atau None."""
+    matches = get_close_matches(title.lower(), [c.lower() for c in choices], n=1, cutoff=cutoff)
     return matches[0] if matches else None
 
-# --- Fungsi Rekomendasi ---
-def recommend_film(title):
-    title = title.lower()
-    matches = df_all[df_all['title'].str.lower().str.contains(title, na=False)]
-
-    if matches.empty or title.strip() == "":
+#fungsi rekomendasi film
+def recommend_film(title, df_all, cosine_sim, top_n=10, sim_threshold=0.1):
+    """
+    title         : judul input user (string)
+    df_all        : DataFrame lengkap dengan kolom 'title', dst.
+    cosine_sim    : matrix numpy similarity
+    top_n         : jumlah rekomendasi maksimal
+    sim_threshold : nilai minimal cosine similarity
+    """
+    # 1. Cari judul paling mirip
+    all_titles = df_all['title'].tolist()
+    corrected = find_best_match(title, all_titles)
+    if not corrected:
+        # tidak ketemu, kasih tahu user
+        print(f"Maaf, aku gak nemu film yang mirip '{title}'. Coba cek ejaannya ya 😊")
         return None
-
-    idx = matches.index[0]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
-    # Hapus film itu sendiri & filter minimal 0.1
-    sim_scores = [score for score in sim_scores if score[0] != idx and score[1] >= 0.1]
-
-    film_indices = [i[0] for i in sim_scores]
-    similarities = [i[1] for i in sim_scores]
-
-    result = df_all.iloc[film_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+    
+    # 2. Temukan indeks film yang benar
+    idx = df_all[df_all['title'].str.lower() == corrected].index[0]
+    
+    # 3. Hitung skor similarity & filter self + threshold, langsung sort
+    sim_scores = [
+        (i, score) 
+        for i, score in enumerate(cosine_sim[idx]) 
+        if i != idx and score >= sim_threshold
+    ]
+    sim_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # 4. Ambil top_n
+    top_scores = sim_scores[:top_n]
+    film_indices = [i for i, _ in top_scores]
+    similarities  = [s for _, s in top_scores]
+    
+    # 5. Siapkan DataFrame hasil
+    result = (
+        df_all
+        .iloc[film_indices]
+        [['title', 'genres', 'overview', 'director', 'cast', 'poster_url']]
+        .copy()
+    )
     result['cosine_similarity'] = similarities
-    return result
+    return result, corrected
 
 # --- CSS Tampilan ---
 st.markdown("""
