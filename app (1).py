@@ -35,7 +35,7 @@ def recommend_film(title):
     return result
 
 # --- CSS Tampilan ---
-st.markdown(\"\"\"
+st.markdown("""
 <style>
 /* Global Styling */
 body, .stApp {
@@ -266,7 +266,7 @@ h1 {
     }
 }
 </style>
-\"\"\", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- Header ---
 st.title("🎬 Sistem Rekomendasi Film")
@@ -310,7 +310,7 @@ elif submit and input_title:
                                 st.write(f"URL: {poster_url}")
                         else:
                             # Placeholder jika tidak ada poster
-                            st.markdown(f\"\"\"
+                            st.markdown(f"""
                                 <div style="
                                     width: 100%;
                                     height: 300px;
@@ -327,10 +327,10 @@ elif submit and input_title:
                                         <small>Poster Tidak Tersedia</small>
                                     </div>
                                 </div>
-                            \"\"\", unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
 
                         with st.container():
-                            st.markdown(f\"\"\"
+                            st.markdown(f"""
                                 <div class="film-card">
                                     <h4>{film['title']}</h4>
                                     <p><strong>Genre:</strong> {film['genres']}</p>
@@ -341,4 +341,4 @@ elif submit and input_title:
                                         <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
                                     </details>
                                 </div>
-                            \"\"\", unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
