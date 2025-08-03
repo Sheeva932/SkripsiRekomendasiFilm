@@ -314,7 +314,7 @@ with st.form(key="search_form"):
 if submit and input_title.strip() == "":
     st.warning("⚠️ Masukkan judul film terlebih dahulu.")
 elif submit and input_title:
-    hasil = recommend_film(input_title)
+    hasil = recommend_film(input_title, df_all, cosine_sim)
 
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
