@@ -2,6 +2,7 @@ import streamlit as st
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+from difflib import get_close_matches
 
 # Set page config harus di awal
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
@@ -11,6 +12,12 @@ df_all = joblib.load('df_all.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+#fungsi koreksi jdul
+def find_best_match(user_input):
+    titles = df_all['title'].str.lower().tolist()
+    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+    return matches[0] if matches else None
 
 # --- Fungsi Rekomendasi ---
 def recommend_film(title):
