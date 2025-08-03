@@ -311,33 +311,41 @@ with st.form(key="search_form"):
     submit = st.form_submit_button("Cari Rekomendasi")
 
 # Jalankan hasil jika submit atau Enter
+# Jalankan hasil jika submit atau Enter
 if submit and input_title.strip() == "":
     st.warning("⚠️ Masukkan judul film terlebih dahulu.")
 elif submit and input_title:
-    hasil = recommend_film(input_title, df_all, cosine_sim)
-
-    if hasil is None or hasil.empty:
+    # 1. Panggil fungsi recommend_film dan unpack dua nilai: (DataFrame, corrected_title)
+    rekom = recommend_film(input_title, df_all, cosine_sim)
+    
+    # 2. Cek apakah fungsi mengembalikan None atau DataFrame kosong
+    if not rekom:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
     else:
-        st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu:")
+        hasil, judul_asli = rekom
+        
+        # 3. Judul asli yang sudah dikoreksi
+        st.markdown(f"## 🔍 Berikut hasil rekomendasi untuk **{judul_asli.title()}**:")
+        
+        # 4. Loop dan tampilkan 3 kolom per baris
         for i in range(0, len(hasil), 3):
             cols = st.columns(3)
             for idx, col in enumerate(cols):
                 if i + idx < len(hasil):
                     film = hasil.iloc[i + idx]
                     full_overview = film['overview']
-                    poster_url = film.get('poster_url', '')
-
+                    poster_url   = film.get('poster_url', "")
+                    
                     with col:
-                        # Validasi dan tampilkan poster
-                        if poster_url and poster_url != '' and not pd.isna(poster_url):
+                        # Tampilkan poster jika valid
+                        if poster_url and not pd.isna(poster_url):
                             try:
                                 st.image(poster_url, use_container_width=True)
-                            except Exception as e:
+                            except Exception:
                                 st.error("🖼️ Poster tidak dapat dimuat")
                                 st.write(f"URL: {poster_url}")
                         else:
-                            # Placeholder jika tidak ada poster
+                            # Placeholder jika poster kosong atau NaN
                             st.markdown(f"""
                                 <div style="
                                     width: 100%;
@@ -356,7 +364,7 @@ elif submit and input_title:
                                     </div>
                                 </div>
                             """, unsafe_allow_html=True)
-
+                            
                         with st.container():
                             st.markdown(f"""
                                 <div class="film-card">
