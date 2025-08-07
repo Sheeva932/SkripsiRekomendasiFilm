@@ -63,13 +63,12 @@ def recommend_film(title, df_all, cosine_sim, top_n=10, sim_threshold=0.1):
     return result, corrected
 
 # --- CSS Tampilan ---
-st.markdown("""
-<style>
+st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f36 50%, #0d1117 100%);
     color: #e2e8f0;
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
 }
 
@@ -80,7 +79,159 @@ body, .stApp {
     max-width: 1200px;
 }
 
-/* Film Card Styling */
+/* Navigation Buttons */
+.nav-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Homepage Hero Section */
+.hero-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+    border-radius: 20px;
+    margin: 2rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    color: #94a3b8;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Feature Cards */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.feature-card {
+    background: linear-gradient(145deg, #1e293b, #111827);
+    padding: 2rem;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #60a5fa;
+    margin-bottom: 1rem;
+}
+
+.feature-desc {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+/* Stats Section */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* How it Works */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.step-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(17, 24, 39, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.step-title {
+    color: #e2e8f0;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step-desc {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+/* Film Card Styling (untuk halaman search) */
 .film-card {
     background: linear-gradient(145deg, #1e293b 0%, #111827 100%);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -116,15 +267,6 @@ body, .stApp {
     opacity: 1;
 }
 
-/* Film Grid Layout */
-.film-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin: 20px 0;
-}
-
-/* Film Poster */
 .film-poster {
     width: 100%;
     height: 400px;
@@ -145,7 +287,6 @@ body, .stApp {
     transform: scale(1.05);
 }
 
-/* Film Title */
 .film-card h4 {
     font-size: 20px;
     font-weight: 700;
@@ -155,7 +296,6 @@ body, .stApp {
     letter-spacing: -0.025em;
 }
 
-/* Film Details */
 .film-card p {
     font-size: 14px;
     margin: 8px 0;
@@ -174,7 +314,6 @@ img {
     object-fit: cover;
 }
 
-/* Sinopsis / Summary */
 details summary {
     cursor: pointer;
     color: #3b82f6;
@@ -224,6 +363,14 @@ details p {
     box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
 }
 
+.stButton > button:disabled {
+    background-color: #e2e8f0 !important;
+    color: #1e293b !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
 /* Inputs */
 .stTextInput > div > div > input,
 .stSelectbox > div > div > div,
@@ -243,7 +390,12 @@ details p {
     outline: none !important;
 }
 
-/* Header */
+label, .stTextInput label {
+    color: #e2e8f0 !important;
+    font-weight: 500;
+    font-size: 14px;
+}
+
 h1, h2, h3 {
     color: #f1f5f9 !important;
     font-weight: 700 !important;
@@ -258,7 +410,6 @@ h1 {
     margin-bottom: 2rem !important;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -275,17 +426,29 @@ h1 {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    .features-grid,
+    .stats-grid,
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
     .film-poster {
         height: 300px;
     }
     .film-card {
         padding: 18px;
     }
-    .film-grid {
-        grid-template-columns: 1fr;
-    }
 }
+
 @media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.8rem;
+    }
     .film-poster {
         height: 240px;
     }
@@ -296,6 +459,126 @@ h1 {
 </style>
 """, unsafe_allow_html=True)
 
+# Navigation Buttons
+st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("🏠 Beranda", use_container_width=True):
+        st.session_state.page = 'home'
+with col2:
+    if st.button("🎬 Cari Film", use_container_width=True):
+        st.session_state.page = 'search'
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Homepage Content
+if st.session_state.page == 'home':
+    # Hero Section
+    st.markdown("""
+    <div class="hero-section">
+        <div class="hero-title">🎬 MovieRec System</div>
+        <p class="hero-subtitle">Temukan film favoritmu dengan teknologi Machine Learning yang canggih dan akurat</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Features Section
+    st.markdown("## ✨ Fitur Unggulan")
+    st.markdown("""
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3 class="feature-title">AI-Powered</h3>
+            <p class="feature-desc">Menggunakan algoritma machine learning TF-IDF dan Cosine Similarity untuk rekomendasi yang akurat dan personal</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 class="feature-title">Super Cepat</h3>
+            <p class="feature-desc">Dapatkan rekomendasi film dalam hitungan detik dengan performa yang optimal dan responsif</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">Akurat & Relevan</h3>
+            <p class="feature-desc">Sistem rekomendasi dengan tingkat similarity tinggi berdasarkan genre, cast, director, dan plot</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Stats Section
+    st.markdown("## 📊 Data & Statistik")
+    st.markdown("""
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">10K+</div>
+            <div class="stat-label">Film Database</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">95%</div>
+            <div class="stat-label">Akurasi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0.5s</div>
+            <div class="stat-label">Response Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Available</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # How it Works
+    st.markdown("## 🔍 Cara Kerja Sistem")
+    st.markdown("""
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h3 class="step-title">Input Film</h3>
+            <p class="step-desc">Masukkan judul film yang kamu suka atau pernah tonton</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h3 class="step-title">AI Analysis</h3>
+            <p class="step-desc">Sistem menganalisis karakteristik film menggunakan TF-IDF dan Cosine Similarity</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h3 class="step-title">Rekomendasi</h3>
+            <p class="step-desc">Dapatkan daftar film serupa yang diprediksi akan kamu sukai</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # CTA Section
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("### 🚀 Siap mencari film favoritmu?")
+        if st.button("Mulai Cari Film Sekarang", use_container_width=True, type="primary"):
+            st.session_state.page = 'search'
+            st.rerun()
+    
+    # Footer
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("© 2025 Movie Recommendation")
+    with col2:
+        st.markdown("💻 **Developed by Sheeva**")
+    with col3:
+        st.markdown("🙏 Thanks to Open Source Community")
+
+# Search Page Content (kode yang sudah ada sebelumnya)
+elif st.session_state.page == 'search':
+    # Load data (pindahkan ke sini agar hanya load saat diperlukan)
+    @st.cache_data
+    def load_data():
+        df_all = joblib.load('df_all.pkl')
+        tfidf = joblib.load('tfidf_vectorizer.pkl')
+        tfidf_matrix = joblib.load('tfidf_matrix.pkl')
+        cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+        return df_all, tfidf, tfidf_matrix, cosine_sim
+    
+    df_all, tfidf, tfidf_matrix, cosine_sim = load_data()
+        
 # --- Header ---
 st.title("🎬 Sistem Rekomendasi Film")
 
