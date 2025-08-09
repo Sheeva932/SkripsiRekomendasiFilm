@@ -6,15 +6,21 @@ from difflib import get_close_matches
 
 # Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
+
 # Initialize session state for navigation
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Load data
-df_all = joblib.load('df_all.pkl')
-tfidf = joblib.load('tfidf_vectorizer.pkl')
-tfidf_matrix = joblib.load('tfidf_matrix.pkl')
-cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+# Load data HANYA SEKALI
+@st.cache_data
+def load_data():
+    df_all = joblib.load('df_all.pkl')
+    tfidf = joblib.load('tfidf_vectorizer.pkl')
+    tfidf_matrix = joblib.load('tfidf_matrix.pkl')
+    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+    return df_all, tfidf, tfidf_matrix, cosine_sim
+
+df_all, tfidf, tfidf_matrix, cosine_sim = load_data()
 
 # Fungsi untuk mencari film yang cocok
 def find_best_match(user_input):
@@ -43,7 +49,7 @@ def find_best_match(user_input):
     # 2. Partial match
     partial_matches = df_temp[df_temp['normalized_title'].str.contains(normalized_input, na=False, regex=False)]
    
-# Tambahan validasi penting
+    # Tambahan validasi penting
     input_words = normalized_input.split()
     if len(input_words) >= 2 and partial_matches.empty:
         return None
@@ -110,7 +116,7 @@ def recommend_film(title):
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    # Filter film dengan similarity >= 0.1, exclude film yang sama persis
+    # Filter film dengan similarity >= 0.09, exclude film yang sama persis
     result_indices = []
     similarities = []
     
@@ -126,14 +132,14 @@ def recommend_film(title):
         return result, original_title
     
     return None, None
-    
+
 # CSS Styling
 st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f36 50%, #0d1117 100%);
     color: #e2e8f0;
-    font-family: 'font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
 }
 
@@ -296,7 +302,7 @@ body, .stApp {
     font-size: 0.9rem;
 }
 
-/* Film Card Styling (untuk halaman search) */
+/* Film Card Styling */
 .film-card {
     background: linear-gradient(145deg, #1e293b 0%, #111827 100%);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -332,26 +338,6 @@ body, .stApp {
     opacity: 1;
 }
 
-.film-poster {
-    width: 100%;
-    height: 400px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.film-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
-
-.film-card:hover .film-poster img {
-    transform: scale(1.05);
-}
-
 .film-card h4 {
     font-size: 20px;
     font-weight: 700;
@@ -373,12 +359,60 @@ body, .stApp {
     font-weight: 600;
 }
 
-img {
-    border-radius: 10px;
-    height: 270px;
-    object-fit: cover;
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: .5rem 2rem !important;
+    border: none !important;
+    transition: all .3s ease-in-out !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, .3) !important;
 }
 
+.stButton > button:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
+}
+
+/* Inputs */
+.stTextInput > div > div > input {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
+    outline: none !important;
+}
+
+label {
+    color: #e2e8f0 !important;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+h1, h2, h3 {
+    color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em;
+}
+
+h1 {
+    background: linear-gradient(135deg, #f59e0b, #facc15);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 2rem !important;
+}
+
+/* Details/Summary styling */
 details summary {
     cursor: pointer;
     color: #3b82f6;
@@ -410,83 +444,10 @@ details p {
     border-left: 3px solid #3b82f6;
 }
 
-/* Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
-    color: white !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    padding: .5rem 2rem !important;
-    border: none !important;
-    transition: all .3s ease-in-out !important;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, .3) !important;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
-}
-
-.stButton > button:disabled {
-    background-color: #e2e8f0 !important;
-    color: #1e293b !important;
-    opacity: 0.7 !important;
-    box-shadow: none !important;
-    cursor: not-allowed !important;
-}
-
-/* Inputs */
-.stTextInput > div > div > input,
-.stSelectbox > div > div > div,
-.stMultiSelect > div > div > div {
-    background-color: #1e293b !important;
-    color: #e2e8f0 !important;
-    border: 1px solid #334155 !important;
-    border-radius: 8px !important;
-    font-size: 14px !important;
-}
-
-.stTextInput > div > div > input:focus,
-.stSelectbox > div > div > div:focus-within,
-.stMultiSelect > div > div > div:focus-within {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
-    outline: none !important;
-}
-
-label, .stTextInput label {
-    color: #e2e8f0 !important;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-h1, h2, h3 {
-    color: #f1f5f9 !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.025em;
-}
-
-h1 {
-    background: linear-gradient(135deg, #f59e0b, #facc15);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 2rem !important;
-}
-
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #1e293b;
-}
-::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+img {
+    border-radius: 10px;
+    height: 270px;
+    object-fit: cover;
 }
 
 /* Responsive */
@@ -502,24 +463,6 @@ h1 {
     .steps-grid {
         grid-template-columns: 1fr;
     }
-    .film-poster {
-        height: 300px;
-    }
-    .film-card {
-        padding: 18px;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 1.8rem;
-    }
-    .film-poster {
-        height: 240px;
-    }
-    .film-card {
-        padding: 16px;
-    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -530,12 +473,14 @@ col1, col2 = st.columns(2)
 with col1:
     if st.button("🏠 Beranda", use_container_width=True):
         st.session_state.page = 'home'
+        st.rerun()
 with col2:
     if st.button("🎬 Cari Film", use_container_width=True):
         st.session_state.page = 'search'
+        st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Homepage Content
+# ============== HOMEPAGE ==============
 if st.session_state.page == 'home':
     # Hero Section
     st.markdown("""
@@ -631,71 +576,62 @@ if st.session_state.page == 'home':
     with col3:
         st.markdown("🙏 Thanks to Open Source Community")
 
-# Search Page Content (kode yang sudah ada sebelumnya)
+# ============== SEARCH PAGE ==============
 elif st.session_state.page == 'search':
-    # Load data (pindahkan ke sini agar hanya load saat diperlukan)
-    @st.cache_data
-    def load_data():
-        df_all = joblib.load('df_all.pkl')
-        tfidf = joblib.load('tfidf_vectorizer.pkl')
-        tfidf_matrix = joblib.load('tfidf_matrix.pkl')
-        cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-        return df_all, tfidf, tfidf_matrix, cosine_sim
+    # Header
+    st.title("🎬 Sistem Rekomendasi Film")
     
-    df_all, tfidf, tfidf_matrix, cosine_sim = load_data() 
+    # Banner (pastikan file banner.jpg ada)
+    try:
+        st.image("banner.jpg", use_container_width=True)
+    except:
+        st.info("📁 Banner image tidak ditemukan")
+    
+    # Input Form
+    st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
+    with st.form(key="search_form"):
+        input_title = st.text_input("Masukkan judul film:")
+        submit = st.form_submit_button("Cari Rekomendasi")
+    
+    # Hasil
+    if submit and input_title.strip() == "":
+        st.warning("⚠️ Masukkan judul film terlebih dahulu.")
+    elif submit:
+        hasil, corrected = recommend_film(input_title)
 
-# --- Header ---
-st.title("🎬 Sistem Rekomendasi Film")
+        if hasil is None or hasil.empty:
+            st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
+        else:
+            st.markdown(f"## 🔍 Rekomendasi film untuk mu :")
+            st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
 
-# --- Banner ---
-st.image("banner.jpg", use_container_width=True)
+            for i in range(0, len(hasil), 3):
+                cols = st.columns(3)
+                for idx, col in enumerate(cols):
+                    if i + idx < len(hasil):
+                        film = hasil.iloc[i + idx]
+                        full_overview = film['overview']
+                        poster_url = film.get('poster_url', '')
 
-# --- Input Form ---
-st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
-with st.form(key="search_form"):
-    input_title = st.text_input("Masukkan judul film:")
-    submit = st.form_submit_button("Cari Rekomendasi")
+                        with col:
+                            if poster_url and not pd.isna(poster_url):
+                                try:
+                                    st.image(poster_url, use_container_width=True)
+                                except:
+                                    st.error("🖼️ Poster tidak dapat dimuat")
+                            else:
+                                st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
 
-# --- Hasil ---
-if submit and input_title.strip() == "":
-    st.warning("⚠️ Masukkan judul film terlebih dahulu.")
-elif submit:
-    hasil, corrected = recommend_film(input_title)
-
-    if hasil is None or hasil.empty:
-        st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
-    else:
-        st.markdown(f"## 🔍 Rekomendasi film untuk mu :")
-        st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
-
-        for i in range(0, len(hasil), 3):
-            cols = st.columns(3)
-            for idx, col in enumerate(cols):
-                if i + idx < len(hasil):
-                    film = hasil.iloc[i + idx]
-                    full_overview = film['overview']
-                    poster_url = film.get('poster_url', '')
-
-                    with col:
-                        if poster_url and not pd.isna(poster_url):
-                            try:
-                                st.image(poster_url, use_container_width=True)
-                            except:
-                                st.error("🖼️ Poster tidak dapat dimuat")
-                        else:
-                            st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
-
-                        st.markdown(f"""
-                            <div class="film-card">
-                                <h4>{film['title']}</h4>
-                                <p><strong>Genre:</strong> {film['genres']}</p>
-                                <p><strong>Director:</strong> {film['director']}</p>
-                                <p><strong>Cast:</strong> {film['cast']}</p>
-                                <p><strong>Similarity:</strong> {film['cosine_similarity']:.1%}</p>
-                                <details style="margin-top:10px;">
-                                    <summary>📖 Sinopsis</summary>
-                                    <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
-                                </details>
-                            </div>
-                        """, unsafe_allow_html=True)
-
+                            st.markdown(f"""
+                                <div class="film-card">
+                                    <h4>{film['title']}</h4>
+                                    <p><strong>Genre:</strong> {film['genres']}</p>
+                                    <p><strong>Director:</strong> {film['director']}</p>
+                                    <p><strong>Cast:</strong> {film['cast']}</p>
+                                    <p><strong>Similarity:</strong> {film['cosine_similarity']:.1%}</p>
+                                    <details style="margin-top:10px;">
+                                        <summary>📖 Sinopsis</summary>
+                                        <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
+                                    </details>
+                                </div>
+                            """, unsafe_allow_html=True)
