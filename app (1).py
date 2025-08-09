@@ -601,7 +601,7 @@ if st.session_state.page == 'home':
     st.markdown("""
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-number">10K+</div>
+            <div class="stat-number">4K+</div>
             <div class="stat-label">Film Database</div>
         </div>
         <div class="stat-card">
