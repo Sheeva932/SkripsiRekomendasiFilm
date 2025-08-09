@@ -143,11 +143,23 @@ body, .stApp {
     line-height: 1.6;
 }
 
+/* Hide Streamlit branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.stDeployButton {visibility: hidden;}
+
+/* Remove top gap */
+.stApp > header {
+    background: transparent;
+}
+
 /* Main Container */
 .main .block-container {
-    padding-top: 2rem;
+    padding-top: 0.5rem;
     padding-bottom: 2rem;
     max-width: 1200px;
+    margin-top: -1rem;
 }
 
 /* Navigation Buttons */
@@ -160,6 +172,7 @@ body, .stApp {
     background: rgba(30, 41, 59, 0.3);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 /* Homepage Hero Section */
@@ -170,6 +183,7 @@ body, .stApp {
     border-radius: 20px;
     margin: 2rem 0;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .hero-title {
@@ -206,6 +220,7 @@ body, .stApp {
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .feature-card:hover {
@@ -245,6 +260,7 @@ body, .stApp {
     border-radius: 12px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .stat-number {
@@ -275,6 +291,7 @@ body, .stApp {
     background: rgba(17, 24, 39, 0.5);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
 }
 
 .step-number {
@@ -314,6 +331,7 @@ body, .stApp {
     transition: all 0.3s ease;
     position: relative;
     overflow: visible;
+    backdrop-filter: blur(10px);
 }
 
 .film-card:hover {
@@ -359,22 +377,88 @@ body, .stApp {
     font-weight: 600;
 }
 
+/* Search History */
+.search-history {
+    background: rgba(17, 24, 39, 0.5);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-item {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    margin: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.history-item:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Confidence Badge */
+.confidence-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.confidence-high {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.confidence-medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.confidence-low {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 /* Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
-    color: white !important;
+    background: linear-gradient(135deg, #374151, #4b5563) !important;
+    color: #e2e8f0 !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     padding: .5rem 2rem !important;
-    border: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     transition: all .3s ease-in-out !important;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, .3) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3) !important;
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    background: linear-gradient(135deg, #4b5563, #6b7280) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .4) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Primary Button Special Styling */
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .3) !important;
+}
+
+.stButton > button[kind="primary"]:hover {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, .4) !important;
 }
 
 /* Inputs */
