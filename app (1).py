@@ -4,65 +4,130 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from difflib import get_close_matches
 
-# Set page config harus di awal
+# Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
+# Initialize session state for navigation
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
 
-# Load file .pkl
+# Load data
 df_all = joblib.load('df_all.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-#fungsi match
-def find_best_match(title, choices, cutoff=0.6):
-    """Cari judul terdekat dari list choices, atau None."""
-    matches = get_close_matches(title.lower(), [c.lower() for c in choices], n=1, cutoff=cutoff)
-    return matches[0] if matches else None
+# Fungsi untuk mencari film yang cocok
+def find_best_match(user_input):
+    user_input = user_input.lower().strip()
+    
+    def normalize_string(s):
+        import re
+        normalized = re.sub(r'[-_\.\,\:\;]', ' ', s.lower())
+        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        return normalized
+    
+    normalized_input = normalize_string(user_input)
+    
+    # Tolak input yang terlalu pendek
+    if len(normalized_input) < 2:
+        return None
 
-#fungsi rekomendasi film
-def recommend_film(title, df_all, cosine_sim, top_n=10, sim_threshold=0.1):
-    """
-    title         : judul input user (string)
-    df_all        : DataFrame lengkap dengan kolom 'title', dst.
-    cosine_sim    : matrix numpy similarity
-    top_n         : jumlah rekomendasi maksimal
-    sim_threshold : nilai minimal cosine similarity
-    """
-    # 1. Cari judul paling mirip
-    all_titles = df_all['title'].tolist()
-    corrected = find_best_match(title, all_titles)
-    if not corrected:
-        # tidak ketemu, kasih tahu user
-        print(f"Maaf, aku gak nemu film yang mirip '{title}'. Coba cek ejaannya ya 😊")
+    df_temp = df_all.copy()
+    df_temp['normalized_title'] = df_temp['title'].apply(normalize_string)
+    
+    # 1. Exact match
+    exact_matches = df_temp[df_temp['normalized_title'] == normalized_input]
+    if not exact_matches.empty:
+        return exact_matches.iloc[0]['title'].lower()
+    
+    # 2. Partial match
+    partial_matches = df_temp[df_temp['normalized_title'].str.contains(normalized_input, na=False, regex=False)]
+   
+# Tambahan validasi penting
+    input_words = normalized_input.split()
+    if len(input_words) >= 2 and partial_matches.empty:
         return None
     
-    # 2. Temukan indeks film yang benar
-    idx = df_all[df_all['title'].str.lower() == corrected].index[0]
+    if not partial_matches.empty:
+        partial_matches = partial_matches.copy()
+        partial_matches['title_length'] = partial_matches['title'].str.len()
+        partial_matches['starts_with_input'] = partial_matches['normalized_title'].str.startswith(normalized_input)
+        partial_matches['word_count'] = partial_matches['normalized_title'].str.split().str.len()
+        
+        partial_matches = partial_matches.sort_values([
+            'starts_with_input', 'word_count', 'title_length'
+        ], ascending=[False, True, True])
+        
+        return partial_matches.iloc[0]['title'].lower()
     
-    # 3. Hitung skor similarity & filter self + threshold, langsung sort
-    sim_scores = [
-        (i, score) 
-        for i, score in enumerate(cosine_sim[idx]) 
-        if i != idx and score >= sim_threshold
-    ]
-    sim_scores.sort(key=lambda x: x[1], reverse=True)
-    
-    # 4. Ambil top_n
-    top_scores = sim_scores[:top_n]
-    film_indices = [i for i, _ in top_scores]
-    similarities  = [s for _, s in top_scores]
-    
-    # 5. Siapkan DataFrame hasil
-    result = (
-        df_all
-        .iloc[film_indices]
-        [['title', 'genres', 'overview', 'director', 'cast', 'poster_url']]
-        .copy()
-    )
-    result['cosine_similarity'] = similarities
-    return result, corrected
+    # 3. Keyword match
+    input_words = normalized_input.split()
+    if len(input_words) > 1:
+        for word in input_words:
+            if len(word) > 2:
+                word_matches = df_temp[df_temp['normalized_title'].str.contains(word, na=False, regex=False)]
+                if not word_matches.empty:
+                    word_matches = word_matches.copy()
+                    word_matches['word_score'] = 0
+                    for input_word in input_words:
+                        word_matches['word_score'] += word_matches['normalized_title'].str.contains(input_word, na=False).astype(int)
+                    
+                    if word_matches.iloc[0]['word_score'] < 2:
+                        continue  # skip kalau cuma cocok 1 kata
 
-# --- CSS Tampilan ---
+                    word_matches['title_length'] = word_matches['title'].str.len()
+                    word_matches = word_matches.sort_values(['word_score', 'title_length'], ascending=[False, True])
+                    
+                    return word_matches.iloc[0]['title'].lower()
+    
+    # 4. Approximate match
+    from difflib import get_close_matches
+    normalized_titles = df_temp['normalized_title'].tolist()
+    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.7)
+    
+    if matches:
+        for match in matches:
+            original_title = df_temp[df_temp['normalized_title'] == match]['title'].iloc[0]
+            return original_title.lower()
+    
+    return None
+
+# Fungsi rekomendasi film
+def recommend_film(title):
+    corrected = find_best_match(title)
+    if not corrected:
+        return None, None
+
+    # Cari index film yang dicari
+    matched_films = df_all[df_all['title'].str.lower() == corrected]
+    if matched_films.empty:
+        return None, None
+        
+    idx = matched_films.index[0]
+    original_title = matched_films.iloc[0]['title']
+    
+    # Hitung similarity scores
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    # Filter film dengan similarity >= 0.1, exclude film yang sama persis
+    result_indices = []
+    similarities = []
+    
+    for film_idx, similarity in sim_scores:
+        if similarity >= 0.09:  # Semua film dengan similarity >= 0.09
+            result_indices.append(film_idx)
+            similarities.append(similarity)
+    
+    # Buat DataFrame hasil
+    if result_indices:
+        result = df_all.iloc[result_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+        result['cosine_similarity'] = similarities
+        return result, original_title
+    
+    return None, None
+    
+# CSS Styling
 st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
@@ -577,87 +642,60 @@ elif st.session_state.page == 'search':
         cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
         return df_all, tfidf, tfidf_matrix, cosine_sim
     
-    df_all, tfidf, tfidf_matrix, cosine_sim = load_data()
-        
+    df_all, tfidf, tfidf_matrix, cosine_sim = load_data() 
+
 # --- Header ---
 st.title("🎬 Sistem Rekomendasi Film")
 
 # --- Banner ---
 st.image("banner.jpg", use_container_width=True)
 
-# --- Input ---
+# --- Input Form ---
 st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
-
-# Form agar bisa jalan pakai Enter juga
 with st.form(key="search_form"):
     input_title = st.text_input("Masukkan judul film:")
     submit = st.form_submit_button("Cari Rekomendasi")
 
-# Jalankan hasil jika submit atau Enter
-# Jalankan hasil jika submit atau Enter
+# --- Hasil ---
 if submit and input_title.strip() == "":
     st.warning("⚠️ Masukkan judul film terlebih dahulu.")
-elif submit and input_title:
-    # 1. Panggil fungsi recommend_film dan unpack dua nilai: (DataFrame, corrected_title)
-    rekom = recommend_film(input_title, df_all, cosine_sim)
-    
-    # 2. Cek apakah fungsi mengembalikan None atau DataFrame kosong
-    if not rekom:
-        st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
+elif submit:
+    hasil, corrected = recommend_film(input_title)
+
+    if hasil is None or hasil.empty:
+        st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
     else:
-        hasil, judul_asli = rekom
-        
-        # 3. Judul asli yang sudah dikoreksi
-        st.markdown(f"## 🔍 Berikut hasil rekomendasi untuk **{judul_asli.title()}**:")
-        
-        # 4. Loop dan tampilkan 3 kolom per baris
+        st.markdown(f"## 🔍 Rekomendasi film untuk mu :")
+        st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
+
         for i in range(0, len(hasil), 3):
             cols = st.columns(3)
             for idx, col in enumerate(cols):
                 if i + idx < len(hasil):
                     film = hasil.iloc[i + idx]
                     full_overview = film['overview']
-                    poster_url   = film.get('poster_url', "")
-                    
+                    poster_url = film.get('poster_url', '')
+
                     with col:
-                        # Tampilkan poster jika valid
                         if poster_url and not pd.isna(poster_url):
                             try:
                                 st.image(poster_url, use_container_width=True)
-                            except Exception:
+                            except:
                                 st.error("🖼️ Poster tidak dapat dimuat")
-                                st.write(f"URL: {poster_url}")
                         else:
-                            # Placeholder jika poster kosong atau NaN
-                            st.markdown(f"""
-                                <div style="
-                                    width: 100%;
-                                    height: 300px;
-                                    background: linear-gradient(135deg, #374151, #1f2937);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    margin-bottom: 16px;
-                                    border: 2px dashed #6b7280;
-                                ">
-                                    <div style="text-align: center; color: #9ca3af;">
-                                        🎬<br>
-                                        <small>Poster Tidak Tersedia</small>
-                                    </div>
-                                </div>
-                            """, unsafe_allow_html=True)
-                            
-                        with st.container():
-                            st.markdown(f"""
-                                <div class="film-card">
-                                    <h4>{film['title']}</h4>
-                                    <p><strong>Genre:</strong> {film['genres']}</p>
-                                    <p><strong>Director:</strong> {film['director']}</p>
-                                    <p><strong>Cast:</strong> {film['cast']}</p>
-                                    <details style="margin-top:10px;">
-                                        <summary>📖 Sinopsis</summary>
-                                        <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
-                                    </details>
-                                </div>
-                            """, unsafe_allow_html=True)
+                            st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
+
+                        st.markdown(f"""
+                            <div class="film-card">
+                                <h4>{film['title']}</h4>
+                                <p><strong>Genre:</strong> {film['genres']}</p>
+                                <p><strong>Director:</strong> {film['director']}</p>
+                                <p><strong>Cast:</strong> {film['cast']}</p>
+                                <p><strong>Similarity:</strong> {film['cosine_similarity']:.1%}</p>
+                                <details style="margin-top:10px;">
+                                    <summary>📖 Sinopsis</summary>
+                                    <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
+                                </details>
+                            </div>
+                        """, unsafe_allow_html=True)
+
