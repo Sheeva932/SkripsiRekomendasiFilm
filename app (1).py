@@ -489,7 +489,7 @@ h1, h2, h3 {
 }
 
 h1 {
-    background: linear-gradient(135deg, #f59e0b, #facc15);
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
