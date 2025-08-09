@@ -489,11 +489,12 @@ h1, h2, h3 {
 }
 
 h1 {
-    background: linear-gradient(135deg, #ef4444, #f87171);
+    background: linear-gradient(135deg, #ffffff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 2rem !important;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3)
 }
 
 /* Details/Summary styling */
