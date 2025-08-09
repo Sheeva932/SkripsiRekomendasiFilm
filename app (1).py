@@ -431,23 +431,23 @@ header {visibility: hidden;}
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* Buttons */
+/* Buttons - Updated to Blue Theme */
 .stButton > button {
-    background: linear-gradient(135deg, #374151, #4b5563) !important;
-    color: #e2e8f0 !important;
+    background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+    color: #ffffff !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     padding: .5rem 2rem !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
     transition: all .3s ease-in-out !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .3) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .3) !important;
 }
 
 .stButton > button:hover {
-    background: linear-gradient(135deg, #4b5563, #6b7280) !important;
+    background: linear-gradient(135deg, #3b82f6, #60a5fa) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .4) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, .4) !important;
+    border-color: rgba(96, 165, 250, 0.5) !important;
 }
 
 /* Primary Button Special Styling */
